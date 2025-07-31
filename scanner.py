@@ -5,6 +5,10 @@ import socket
 #Allows you to scan multiple devices at once (uses threads)
 import concurrent.futures
 
+import subprocess
+import platform 
+import re
+
 #Function to check if an individual IP address is online
 def is_host_online(ipaddress):
     try:
@@ -47,6 +51,7 @@ def scan_subnet(subnet):
     print(f"Scan complete - {len(hosts_online)} hosts are online")
     return hosts_online
 
+#Scanning for open ports on online Hosts
 def scan_ports(ip):
     open_ports = []
     ports_to_scan = [20,21,22,23,25,53,80,110,139,143,443,445,993,995,1433,1521,3306,3389,5900,8080]#Most commonly used TCP ports
@@ -64,4 +69,8 @@ def scan_ports(ip):
         print(f"Error scanning ports on {ip}: {error}")
         return False
 
+
+
+#Identifying Device type using MAC addresses
+#Finding the MAC address of the device
 scan_subnet("172.17.176.0/24")

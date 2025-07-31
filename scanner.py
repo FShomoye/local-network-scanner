@@ -5,7 +5,7 @@ import socket
 #Allows you to scan multiple devices at once (uses threads)
 import concurrent.futures
 
-#Function to check if an indicidual IP address is online
+#Function to check if an individual IP address is online
 def is_host_online(ipaddress):
     try:
         #attempt to connect to port 80
@@ -17,6 +17,7 @@ def is_host_online(ipaddress):
     except:
         return False
     
+#Scans the subnet and appends the online hosts to a list and displays to the user the number of online hosts
 def scan_subnet(subnet):
     try:
         network = ipaddress.ip_network(subnet, strict = False)#Parse through the subnet
@@ -40,12 +41,27 @@ def scan_subnet(subnet):
                 if future.result():
                     print(f"Host {ip} is online")
                     hosts_online.append(str(ip))
-            except:
-                print(f"Error in checking {ip}: {Exception}")
+            except Exception as error:
+                print(f"Error in checking {ip}: {error}")
 
     print(f"Scan complete - {len(hosts_online)} hosts are online")
     return hosts_online
 
+def scan_ports(ip):
+    open_ports = []
+    ports_to_scan = [20,21,22,23,25,53,80,110,139,143,443,445,993,995,1433,1521,3306,3389,5900,8080]#Most commonly used TCP ports
+    try:
+        for port in ports_to_scan:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(1)
+            result = s.connect_ex((ip,port))
+            s.close()
+            if result == 0:
+                open_ports.append(port)#
+        print(f"Open ports on IP address {ip}: {open_ports}")
+        return open_ports
+    except Exception as error:
+        print(f"Error scanning ports on {ip}: {error}")
+        return False
 
-
-scan_subnet("192.168.1.0/24")
+scan_subnet("172.17.176.0/24")

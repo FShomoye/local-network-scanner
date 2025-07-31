@@ -16,3 +16,14 @@ def is_host_online(ipaddress):
         return result == 0 #if successful connection -  assume host is online
     except:
         return False
+    
+    def scan_subnet(subnet):
+        try:
+            network = ipaddress.ip_network(subnet, strict = False)
+        except ValueError:
+            print("invalid Subnet format")
+            return
+        
+    print(f"Scanning the subnet {subnet}")
+    hosts_online = []
+    

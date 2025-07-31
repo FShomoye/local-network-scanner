@@ -17,13 +17,35 @@ def is_host_online(ipaddress):
     except:
         return False
     
-    def scan_subnet(subnet):
-        try:
-            network = ipaddress.ip_network(subnet, strict = False)
-        except ValueError:
-            print("invalid Subnet format")
-            return
+def scan_subnet(subnet):
+    try:
+        network = ipaddress.ip_network(subnet, strict = False)#Parse through the subnet
+    except ValueError:
+        print("invalid Subnet format")
+        return
         
     print(f"Scanning the subnet {subnet}")
     hosts_online = []
-    
+
+    #use of threading to scan multiple IPs faster
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        future_to_ip = {}
+        for ip in network.hosts():#iterates through IPs in given subnet
+            future = executor.submit(is_host_online, ip)
+            future_to_ip[future] = ip
+
+        for future in concurrent.futures.as_completed(future_to_ip):
+            ip = future_to_ip[future]
+            try:
+                if future.result():
+                    print(f"Host {ip} is online")
+                    hosts_online.append(str(ip))
+            except:
+                print(f"Error in checking {ip}: {Exception}")
+
+    print(f"Scan complete - {len(hosts_online)} hosts are online")
+    return hosts_online
+
+
+
+scan_subnet("192.168.1.0/24")

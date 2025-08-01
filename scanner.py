@@ -111,4 +111,4 @@ def get_mac_Address(ip):
 #Identifying Device type using MAC addresses
 #Finding the MAC address of the device
 
-get_mac_Address("192.168.56.1")
+get_mac_Address("192.168.1.254")

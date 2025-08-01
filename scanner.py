@@ -73,6 +73,7 @@ def scan_ports(ip):
 #MAC address retrieval
 def get_mac_Address(ip):
     try:
+        print("Step 1")
         if platform.system().lower() == "windows":
             #Gets ARP table -> maps Ip addresses to MAC addresses
             output = subprocess.check_output(f"arp -a {ip}",shell=True).decode()
@@ -85,9 +86,18 @@ def get_mac_Address(ip):
             #For linux & macOS
             output = subprocess.check_output(f"arp", "-n", ip).decode()
             mac_regex = r"([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}"
-
+        print("Step 2")
         match = re.search(mac_regex, output)
-
+        if match == True:
+            print("Step 3")
+            print(f"MAC address for {ip}: {match.group(0)}")
+            return match.group(0)
+        else:
+            print("Step 4")
+            return "MAC address not found"
+    except subprocess.CalledProcessError as error:
+        return f"Could not retrieve MAC address for {ip}  error: {error}"
 #Identifying Device type using MAC addresses
 #Finding the MAC address of the device
-scan_subnet("172.17.176.0/24")
+
+get_mac_Address("192.168.56.1")

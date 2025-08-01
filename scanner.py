@@ -10,7 +10,6 @@ import platform
 import re
 
 
-
 #Function to check if an individual IP address is online
 def is_host_online(ipaddress):
     try:
@@ -70,6 +69,17 @@ def scan_ports(ip):
     except Exception as error:
         print(f"Error scanning ports on {ip}: {error}")
         return False
+
+#MAC address retrieval
+def get_mac_Address(ip):
+    try:
+        if platform.system().lower() == "windows":
+            #Gets ARP table -> maps Ip addresses to MAC addresses
+            output = subprocess.check_output(f"arp -a {ip}",shell=True).decode()
+            
+            #ensures mac addresses are in the right format, maps 2 hex digits 5 times with a colon 
+            # after and then 2 more with no colon for the final 2 digit section of the mac address
+            mac_regex = r"(([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2})"
 
 
 

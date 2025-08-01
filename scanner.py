@@ -9,6 +9,8 @@ import subprocess
 import platform 
 import re
 
+
+
 #Function to check if an individual IP address is online
 def is_host_online(ipaddress):
     try:

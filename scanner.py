@@ -9,6 +9,7 @@ import subprocess
 import platform 
 import re
 
+from mac_vendor_lookup import MacLookup
 
 #Function to check if an individual IP address is online
 def is_host_online(ipaddress):
@@ -82,7 +83,6 @@ def get_mac_Address(ip):
             output = subprocess.check_output(f"arp -a {ip}",shell=True).decode()
             
 
-            print("ARP output:", output)
             #ensures mac addresses are in the right format, maps 2 hex digits 5 times with a colon 
             # after and then 2 more with no colon for the final 2 digit section of the mac address
             mac_regex = r"(([0-9a-fA-F]{2}-){5}[0-9a-fA-F]{2})"
@@ -103,7 +103,6 @@ def get_mac_Address(ip):
             return match.group(0)
         
         else:
-            print("Step 4")
             return "MAC address not found"
         
     except subprocess.CalledProcessError as error:
@@ -112,3 +111,10 @@ def get_mac_Address(ip):
 #Finding the MAC address of the device
 
 get_mac_Address("192.168.1.254")
+#IMPORTANT note your machine does not store a ARP entry for its own Networ interfece, so you will not be able to retrieve the MAC address of your own machine
+#The more you know :)
+
+#identify device type based on MAC address
+def identify_device_type(mac_address):
+    try:
+        return MacLookup().lookup(mac_address)

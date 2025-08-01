@@ -79,9 +79,14 @@ def get_mac_Address(ip):
             
             #ensures mac addresses are in the right format, maps 2 hex digits 5 times with a colon 
             # after and then 2 more with no colon for the final 2 digit section of the mac address
-            mac_regex = r"(([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2})"
+            mac_regex = r"(([0-9a-fA-F]{2}[-:]){5}[0-9a-fA-F]{2})"
+        
+        else:
+            #For linux & macOS
+            output = subprocess.check_output(f"arp", "-n", ip).decode()
+            mac_regex = r"([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}"
 
-
+        match = re.search(mac_regex, output)
 
 #Identifying Device type using MAC addresses
 #Finding the MAC address of the device

@@ -75,6 +75,8 @@ def get_mac_Address(ip):
     try:
         print("Step 1")
         if platform.system().lower() == "windows":
+            #Ping the IP address to ensure it is in the ARP table
+            subprocess.call(["ping", "-n", "1",ip])
             #Gets ARP table -> maps Ip addresses to MAC addresses
             output = subprocess.check_output(f"arp -a {ip}",shell=True).decode()
             
@@ -83,12 +85,14 @@ def get_mac_Address(ip):
             mac_regex = r"(([0-9a-fA-F]{2}[-:]){5}[0-9a-fA-F]{2})"
         
         else:
+            #Ping for non-Windows OS
+            subprocess.call(["ping", "-c","1", ip])
             #For linux & macOS
-            output = subprocess.check_output(f"arp", "-n", ip).decode()
+            output = subprocess.check_output(f["arp", "-n", ip]).decode()
             mac_regex = r"([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}"
         print("Step 2")
         match = re.search(mac_regex, output)
-        if match == True:
+        if match:
             print("Step 3")
             print(f"MAC address for {ip}: {match.group(0)}")
             return match.group(0)

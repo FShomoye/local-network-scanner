@@ -114,7 +114,14 @@ get_mac_Address("192.168.1.254")
 #IMPORTANT note your machine does not store a ARP entry for its own Networ interfece, so you will not be able to retrieve the MAC address of your own machine
 #The more you know :)
 
+MacLookup().update_vendors()#Updates the MAC address vendor database
+
+
 #identify device type based on MAC address
 def identify_device_type(mac_address):
     try:
+        mac_address = mac_address.replace("-",":")
         return MacLookup().lookup(mac_address)
+    except:
+        print("NO")
+        return "Unknown Device Type"

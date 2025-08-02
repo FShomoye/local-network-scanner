@@ -114,7 +114,8 @@ get_mac_Address("192.168.1.254")
 #IMPORTANT note your machine does not store a ARP entry for its own Networ interfece, so you will not be able to retrieve the MAC address of your own machine
 #The more you know :)
 
-MacLookup().update_vendors()#Updates the MAC address vendor database
+#MacLookup().update_vendors()
+# #Updates the MAC address vendor database
 
 
 #identify device type based on MAC address
@@ -125,3 +126,17 @@ def identify_device_type(mac_address):
     except:
         print("NO")
         return "Unknown Device Type"
+
+def get_local_subnet():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCKDGRAM)
+        s.connect()("8.8.8.8",80)
+        local_ip = s.getsockname()[0]
+        s.close()
+
+        ip_parts = local_ip.split(".")
+        subnet = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.0/24"  # Assuming the network is a /24 subnet
+        return subnet
+    except Exception as error:
+        print(f"Could not detect local subnet: {error}")
+        return None

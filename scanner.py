@@ -110,7 +110,6 @@ def get_mac_Address(ip):
 #Identifying Device type using MAC addresses
 #Finding the MAC address of the device
 
-get_mac_Address("192.168.1.254")
 #IMPORTANT note your machine does not store a ARP entry for its own Networ interfece, so you will not be able to retrieve the MAC address of your own machine
 #The more you know :)
 
@@ -129,7 +128,7 @@ def identify_device_type(mac_address):
 
 def get_local_subnet():
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCKDGRAM)
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect()("8.8.8.8",80)
         local_ip = s.getsockname()[0]
         s.close()
@@ -140,3 +139,36 @@ def get_local_subnet():
     except Exception as error:
         print(f"Could not detect local subnet: {error}")
         return None
+    
+#Main function to run the scanner
+def main():
+    subnet = get_local_subnet()
+    if not subnet:
+        print("Failed to detect the local subnet. Exiting the program")
+        return
+    
+    hosts_online = scan_subnet(subnet)
+    if not hosts_online:
+        print("No online hosts found in the subnet")
+        return
+    
+    results = []
+    for ip in hosts_online:
+        print(f"Scanning hosts on subnet {ip} for open ports and MAC address")
+        open_ports = scan_ports(ip)
+        mac_address = get_mac_Address(ip)
+        device_type = identify_device_type(mac_address)
+        results.append({"ip": ip, "Available Ports": open_ports, "MAC Address": mac_address, "Device Type": device_type})
+
+        print("Scan Summary:")
+        for device in results:
+            print(f"IP Address: {device["ip"]}")
+            print(f"Open Ports: {device["Available Ports"]}")
+            print(f"MAC Address: {device["MAC Address"]}")
+            print(f"Device Type: {device["Device Type"]}")
+
+    print("Scanning complete")
+    return results
+
+if __name__ == "__main__":
+    main()

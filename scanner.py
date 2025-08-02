@@ -129,7 +129,7 @@ def identify_device_type(mac_address):
 def get_local_subnet():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect()("8.8.8.8",80)
+        s.connect(("8.8.8.8",80))
         local_ip = s.getsockname()[0]
         s.close()
 
@@ -160,14 +160,14 @@ def main():
         device_type = identify_device_type(mac_address)
         results.append({"ip": ip, "Available Ports": open_ports, "MAC Address": mac_address, "Device Type": device_type})
 
-        print("Scan Summary:")
+        print("\n=== Scan Summary: ===")
         for device in results:
-            print(f"IP Address: {device["ip"]}")
-            print(f"Open Ports: {device["Available Ports"]}")
-            print(f"MAC Address: {device["MAC Address"]}")
-            print(f"Device Type: {device["Device Type"]}")
+            print(f"IP Address: {device['ip']}")
+            print(f"Open Ports: {device['Available Ports']}")
+            print(f"MAC Address: {device['MAC Address']}")
+            print(f"Device Type: {device['Device Type']}")
 
-    print("Scanning complete")
+    print("\nScanning complete")
     return results
 
 if __name__ == "__main__":

@@ -5,6 +5,12 @@ import socket
 #Allows you to scan multiple devices at once (uses threads)
 import concurrent.futures
 
+import subprocess
+import platform 
+import re
+
+from mac_vendor_lookup import MacLookup
+
 #Function to check if an individual IP address is online
 def is_host_online(ipaddress):
     try:
@@ -47,6 +53,7 @@ def scan_subnet(subnet):
     print(f"Scan complete - {len(hosts_online)} hosts are online")
     return hosts_online
 
+#Scanning for open ports on online Hosts
 def scan_ports(ip):
     open_ports = []
     ports_to_scan = [20,21,22,23,25,53,80,110,139,143,443,445,993,995,1433,1521,3306,3389,5900,8080]#Most commonly used TCP ports
@@ -64,4 +71,104 @@ def scan_ports(ip):
         print(f"Error scanning ports on {ip}: {error}")
         return False
 
-scan_subnet("172.17.176.0/24")
+#MAC address retrieval
+def get_mac_Address(ip):
+    try:
+        
+        if platform.system().lower() == "windows":
+            #Ping the IP address to ensure it is in the ARP table
+            subprocess.call(["ping", "-n", "1",ip])
+
+            #Gets ARP table -> maps Ip addresses to MAC addresses
+            output = subprocess.check_output(f"arp -a {ip}",shell=True).decode()
+            
+
+            #ensures mac addresses are in the right format, maps 2 hex digits 5 times with a colon 
+            # after and then 2 more with no colon for the final 2 digit section of the mac address
+            mac_regex = r"(([0-9a-fA-F]{2}-){5}[0-9a-fA-F]{2})"
+        
+        else:
+            #Ping for non-Windows OS
+            subprocess.call(["ping", "-c","1", ip])
+
+            #For linux & macOS
+            output = subprocess.check_output(["arp", "-n", ip]).decode()
+            mac_regex = r"([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}"
+
+        
+        match = re.search(mac_regex, output)
+
+        if match:
+            print(f"MAC address for {ip}: {match.group(0)}")
+            return match.group(0)
+        
+        else:
+            return "MAC address not found"
+        
+    except subprocess.CalledProcessError as error:
+        return f"Could not retrieve MAC address for {ip}  error: {error}"
+#Identifying Device type using MAC addresses
+#Finding the MAC address of the device
+
+#IMPORTANT note your machine does not store a ARP entry for its own Networ interfece, so you will not be able to retrieve the MAC address of your own machine
+#The more you know :)
+
+#MacLookup().update_vendors()
+# #Updates the MAC address vendor database
+
+
+#identify device type based on MAC address
+def identify_device_type(mac_address):
+    try:
+        mac_address = mac_address.replace("-",":")
+        return MacLookup().lookup(mac_address)
+    except:
+        print("NO")
+        return "Unknown Device Type"
+
+def get_local_subnet():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8",80))
+        local_ip = s.getsockname()[0]
+        s.close()
+
+        ip_parts = local_ip.split(".")
+        subnet = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.0/24"  # Assuming the network is a /24 subnet
+        return subnet
+    except Exception as error:
+        print(f"Could not detect local subnet: {error}")
+        return None
+    
+#Main function to run the scanner
+def main():
+    subnet = get_local_subnet()
+    if not subnet:
+        print("Failed to detect the local subnet. Exiting the program")
+        return
+    
+    hosts_online = scan_subnet(subnet)
+    if not hosts_online:
+        print("No online hosts found in the subnet")
+        return
+    
+    results = []
+    for ip in hosts_online:
+        print(f"Scanning hosts on subnet {ip} for open ports and MAC address")
+        open_ports = scan_ports(ip)
+        mac_address = get_mac_Address(ip)
+        device_type = identify_device_type(mac_address)
+        results.append({"ip": ip, "Available Ports": open_ports, "MAC Address": mac_address, "Device Type": device_type})
+
+        print("\n=== Scan Summary: ===")
+        for device in results:
+            print(f"IP Address: {device['ip']}")
+            print(f"Open Ports: {device['Available Ports']}")
+            print(f"MAC Address: {device['MAC Address']}")
+            print(f"Device Type: {device['Device Type']}")
+
+    print("\nScanning complete")
+    return results
+
+if __name__ == "__main__":
+    main()
